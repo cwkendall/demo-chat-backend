@@ -54,6 +54,32 @@ exports.handler = async function(context, event, callback) {
       response.setBody("Unable to add participant, no available Proxy Numbers");
       callback(response);
     }
+  } else if (event.Channel) {
+    client.conversations
+      .conversations(event.Channel)
+      .fetch()
+      .then(conversation => {
+        client.conversations
+          .conversations(event.Channel)
+          .update({
+            ...(event.ChannelName && { friendlyName: event.ChannelName }),
+            ...(event.ChannelAttributes && {
+              attributes: event.ChannelAttributes
+            })
+          })
+          .then(updated => {
+            response.setBody(updated);
+            callback(null, response);
+          })
+          .catch(e => {
+            response.setBody("Unable to update conversation: " + event.Channel);
+            callback(e);
+          });
+      })
+      .catch(e => {
+        response.setBody("Unable to fetch conversation: " + event.Channel);
+        callback(e);
+      });
   } else {
     // create a new conversation
     client.conversations.conversations
