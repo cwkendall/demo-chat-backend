@@ -31,12 +31,14 @@ exports.handler = async function(context, event, callback) {
           response.setBody(conversation);
           callback(null, response);
         })
-        .catch(err => {
-          response.setBody(err);
-          callback(response);
+        .catch(e => {
+          response.setBody({ error: `Unable to add participant (${event.Identity})`, reason: e });
+          response.setStatusCode(e.status ? e.status : 500);
+          callback(null, response);
         });
     } else if (event.Address) {
       const addresses = getProxyAddresses(event.Address);
+      let error = null;
       for (let proxyAddress of addresses) {
         try {
           const body = await client.conversations
@@ -47,12 +49,15 @@ exports.handler = async function(context, event, callback) {
             });
           response.setBody(body);
           callback(null, response);
+          return;
         } catch (err) {
+          error = err;
           console.error(err);
         }
       }
-      response.setBody("Unable to add participant, no available Proxy Numbers");
-      callback(response);
+      response.setBody({ error: `Unable to add participant (${event.Address}), no available proxy numbers`, reason: error});
+      response.setStatusCode(error ? error.status : 500);
+      callback(null, response);
     }
   } else if (event.Channel) {
     client.conversations
@@ -72,13 +77,15 @@ exports.handler = async function(context, event, callback) {
             callback(null, response);
           })
           .catch(e => {
-            response.setBody("Unable to update conversation: " + event.Channel);
-            callback(e);
+            response.setBody({ error: "Unable to update conversation", reason: e });
+            response.setStatusCode(e.status ? e.status : 500);
+            callback(null, response);
           });
       })
       .catch(e => {
-        response.setBody("Unable to fetch conversation: " + event.Channel);
-        callback(e);
+        response.setBody({ error: "Unable to fetch conversation", reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
       });
   } else {
     // create a new conversation
@@ -94,6 +101,10 @@ exports.handler = async function(context, event, callback) {
         response.setBody(conversations);
         callback(null, response);
       })
-      .catch(e => callback(e));
+      .catch(e => {
+        response.setBody({ error: "Unknown error creating new conversation", reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
+      });
   }
 };

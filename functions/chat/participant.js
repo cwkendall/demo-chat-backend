@@ -1,4 +1,3 @@
-
 exports.handler = function(context, event, callback) {
   const client = context.getTwilioClient();
   const response = new Twilio.Response();
@@ -17,9 +16,12 @@ exports.handler = function(context, event, callback) {
       .then(participant => {
         response.setBody(participant);
         callback(null, response);
-      }).catch(e =>
-        callback(e)
-      );
+      })
+      .catch(e => {
+        response.setBody({ error: `Unable to fetch participant (${event.Participant})`, reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
+      });
   } else {
     // get all participants by conversation
     client.conversations
@@ -29,6 +31,10 @@ exports.handler = function(context, event, callback) {
         response.setBody(participants);
         callback(null, response);
       })
-      .catch(e => callback(e));
+      .catch(e => {
+        response.setBody({ error: "Unable to fetch participants", reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
+      });
   }
 };

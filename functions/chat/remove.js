@@ -17,7 +17,11 @@ exports.handler = function(context, event, callback) {
         response.setBody(result);
         callback(null, response);
       })
-      .catch(e => callback(e));
+      .catch(e => {
+        response.setBody({ error: "Unable to remove participant", reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
+      });
   } else if (event.Channel) {
     // remove an existing conversation
     client.conversations
@@ -27,8 +31,14 @@ exports.handler = function(context, event, callback) {
         response.setBody(result);
         callback(null, response);
       })
-      .catch(e => callback(e));
+      .catch(e => {
+        response.setBody({ error: "Unable to remove conversation", reason: e });
+        response.setStatusCode(e.status ? e.status : 500);
+        callback(null, response);
+      });
   } else {
-    response({ error: "Conversation SID is required" });
+    response.setBody({ error: "Conversation SID is required" });
+    response.setStatusCode(400);
+    callback(null, response);
   }
 };
