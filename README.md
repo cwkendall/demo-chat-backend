@@ -7,13 +7,17 @@ This is a lightweight application based on [Twilio Chat](https://www.twilio.com/
 This demo requires a Twilio account and a working Chat Service SID. By default these are provisioned automatically by the Conversations API (Default Conversations Service).
 
 You'll need to collect some credentials from the [Twilio Console](https://www.twilio.com/console):
+
 * Your Account SID (`ACXXX`) and Auth Token, both accessible from the [Dashboard](https://twilio.com/console/dashboard)
 * Your Account's Chat Service Sid `ISXXX` SID which is attached to your Chat Service
+
+All senders to be used with the app, MUST be added as Senders to the Conversations Messaging Service!
+
+If you wish to include self-service or a bot prior to the conversation, modify Inbound Settings on the Conversations Messaging Service, `When a new message arrives on a number assigned to this Service: SEND AN INCOMING_MESSAGE WEBHOOK`. Associate the webhook with either AutoPilot Assistant or Studio Flow and setup a Function to move one or more participants into a New Conversation. Once added into a conversation all messages are routed by Conversations API into the Chat service.
 
 ## Deploying the backend chat application (on Twilio)
 
 * Clone [demo-chat-backend](https://github.com/cwkendall/demo-chat-backend)
-
 * copy `.env.example` to `.env` and set the following environment variables from your Twilio account:
 
 ```bash
@@ -35,15 +39,9 @@ WHATSAPP_SENDERS=whatsapp:<number>,whatsapp:<number>
 * Using the [twilio-cli](https://www.twilio.com/docs/twilio-cli/quickstart) and [twilio serverless plugin](https://github.com/twilio-labs/plugin-serverless) (Recommended) deploy to [Twilio Runtime](https://www.twilio.com/docs/runtime)
 * Run the CLI command to deploy to Twilio runtime `twilio serverless:deploy`
 
- For the twilio-cli option, run the following command and enter the resulting token into the placeholder:
- `twilio token:chat --identity <The test chat username> --chat-service-sid <ISXXX...>
-
 ## Running the frontend application
 
-The demo frontend can be configured and run in two ways:
-
-* Forking [demo-chat-app on CodeSandbox.io](https://codesandbox.io/s/github/TwilioDevEd/demo-chat-app)
-* Cloning [demo-chat-app](https://github.com/cwkendall/demo-chat-app) and running locally
+* Clone [demo-chat-app](https://github.com/cwkendall/demo-chat-app) and run locally or deploy to [Zeit Now](https://zeit.co/now)
 
 In either case:
 
@@ -60,10 +58,14 @@ To run locally (or install on your own cloud service):
 `npm install`
 `npm run start`
 
+To deploy to Zeit, edit `now.json` with you chat backend URL and run:
+`npm install -g now-cli` (first time installation)
+`now`
+
 ## Interacting with the Application
 
-The application will be accessible on `http://localhost:3000`
+The application will be accessible on `http://localhost:3000` or on `https://demo-chat-app.<your-zeit-domain>.now.sh`
 
 It will start at a login screen. Any login ID can be used and no password is required. The login ID will be used as the Chat ID.
 
-When starting a conversation currently you will need to add your own Chat ID in order for the conversation to appear.
+When starting a conversation your own Chat ID will be added automatically to the conversation, do not remove it otherwise it will not show in the list.
